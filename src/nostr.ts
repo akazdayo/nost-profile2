@@ -56,7 +56,7 @@ export async function getProfileByNpub(npub: string): Promise<NostrProfile | nul
     // SimplePoolを使ってリレーに接続
     const pool = new SimplePool();
 
-    // kind0イベントを取得（10秒タイムアウト）
+    // kind0イベントを取得（2.5秒タイムアウト）
     const event = await Promise.race([
       pool.get(userData.relays || RELAYS, {
         kinds: [0],
@@ -64,7 +64,7 @@ export async function getProfileByNpub(npub: string): Promise<NostrProfile | nul
         limit: 1
       }),
       new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 10000)
+        setTimeout(() => reject(new Error('Timeout')), 2500)
       )
     ]);
 
