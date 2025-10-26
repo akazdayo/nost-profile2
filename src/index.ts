@@ -27,7 +27,7 @@ export default new Elysia({
       }
 
       // SVGを生成
-      const svg = generateProfileSvg(profile, npub, badges);
+      const svg = await generateProfileSvg(profile, npub, badges);
 
       // Content-Typeをimage/svg+xmlに設定してResponseを返す
       return new Response(svg, {

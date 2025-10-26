@@ -9,16 +9,51 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
+async function fetchImageAsDataUri(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/png';
+    const arrayBuffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+
+    // Convert to base64
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+
+    return `data:${contentType};base64,${base64}`;
+  } catch (error) {
+    console.error(`Error fetching image ${url}:`, error);
+    // Return a default placeholder as data URI
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2UxZTRlOCIvPjwvc3ZnPg==';
+  }
+}
+
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 }
 
-export function generateProfileSvg(profile: NostrProfile, npub: string, badges: Badge[] = []): string {
+export async function generateProfileSvg(profile: NostrProfile, npub: string, badges: Badge[] = []): Promise<string> {
   const displayName = escapeXml(profile.display_name || profile.name || 'Anonymous');
   const name = escapeXml(profile.name || '');
   const about = profile.about ? escapeXml(truncateText(profile.about, 150)) : '';
-  const picture = profile.picture || 'https://via.placeholder.com/120';
+  const pictureUrl = profile.picture || '';
+
+  // Fetch and convert images to data URIs
+  const picture = await fetchImageAsDataUri(pictureUrl);
+  const badgeImages = await Promise.all(
+    badges.map(async (badge) => {
+      const imageUrl = badge.thumb || badge.image || '';
+      return fetchImageAsDataUri(imageUrl);
+    })
+  );
 
   // SVG dimensions
   const width = 650;
@@ -97,8 +132,8 @@ export function generateProfileSvg(profile: NostrProfile, npub: string, badges: 
   <!-- Bio -->
   <text class="bio" x="160" y="${name ? '135' : '115'}">
     ${about.split('\n').slice(0, 3).map((line, i) =>
-      `<tspan x="160" dy="${i === 0 ? '0' : '20'}">${line}</tspan>`
-    ).join('\n    ')}
+    `<tspan x="160" dy="${i === 0 ? '0' : '20'}">${line}</tspan>`
+  ).join('\n    ')}
   </text>
   ` : ''}
 
@@ -106,13 +141,13 @@ export function generateProfileSvg(profile: NostrProfile, npub: string, badges: 
   <!-- Badges -->
   <g id="badges">
     ${badges.map((badge, index) => {
-      const badgeX = 382 + (index * 50); // Right-aligned: 650 - 20 - (48*5 + 2*4) = 382
-      const badgeY = 40;
-      const imageUrl = badge.thumb || badge.image || 'https://via.placeholder.com/48';
+    const badgeX = 382 + (index * 50); // Right-aligned: 650 - 20 - (48*5 + 2*4) = 382
+    const badgeY = 40;
+    const imageDataUri = badgeImages[index];
 
-      return `
-    <image href="${imageUrl}" x="${badgeX}" y="${badgeY}" width="48" height="48" preserveAspectRatio="xMidYMid slice"/>`;
-    }).join('\n    ')}
+    return `
+    <image href="${imageDataUri}" x="${badgeX}" y="${badgeY}" width="48" height="48" preserveAspectRatio="xMidYMid slice"/>`;
+  }).join('\n    ')}
   </g>
   ` : ''}
 </svg>`;
