@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "elysia-on-cloudflare",
+  "name": "nostr-profile2",
   "main": "src/index.ts",
   "compatibility_date": "2025-10-25"
 }
