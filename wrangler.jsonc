@@ -1,6 +1,12 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nostr-profile2",
-  "main": "src/index.ts",
-  "compatibility_date": "2025-10-25"
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "nostr-profile2",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-10-25",
+	"kv_namespaces": [
+		{
+			"binding": "KV",
+			"id": "c425ce1b79514337aa5967bf199c1160"
+		}
+	],
 }

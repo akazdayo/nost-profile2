@@ -29,7 +29,7 @@ export type User = {
   relays: string[] | null
 }
 
-function getUser(userKey: string): User {
+export function getUser(userKey: string): User {
   const decoded = nip19.decode(userKey);
   if (decoded.type !== 'nprofile' && decoded.type !== 'npub') {
     throw new Error('Invalid nprofile format');
@@ -48,11 +48,8 @@ function getUser(userKey: string): User {
   }
 }
 
-export async function getProfileByNpub(npub: string): Promise<NostrProfile | null> {
+export async function getProfileByNpub(userData: User): Promise<NostrProfile | null> {
   try {
-    // npubをhexに変換
-    const userData = getUser(npub);
-
     // SimplePoolを使ってリレーに接続
     const pool = new SimplePool();
 
@@ -90,11 +87,8 @@ export async function getProfileByNpub(npub: string): Promise<NostrProfile | nul
   }
 }
 
-export async function getBadgesByNpub(npub: string): Promise<Badge[]> {
+export async function getBadgesByNpub(userData: User): Promise<Badge[]> {
   try {
-    // npubをhexに変換
-    const userData = getUser(npub);
-
     const pool = new SimplePool();
 
     // kind 30008 (プロフィールバッジ) を取得
