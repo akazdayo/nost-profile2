@@ -113,7 +113,7 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
       }
     </style>
     <clipPath id="avatar-clip">
-      <circle cx="80" cy="80" r="58"/>
+      <circle cx="80" cy="100" r="58"/>
     </clipPath>
   </defs>
 
@@ -121,8 +121,8 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
   <rect class="card" x="0" y="0" width="${width}" height="${height}" rx="10"/>
 
   <!-- Avatar with border -->
-  <circle class="avatar-border" cx="80" cy="80" r="60"/>
-  <image href="${picture}" x="20" y="20" width="120" height="120" clip-path="url(#avatar-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <circle class="avatar-border" cx="80" cy="100" r="60"/>
+  <image href="${picture}" x="20" y="40" width="120" height="120" clip-path="url(#avatar-clip)" preserveAspectRatio="xMidYMid slice"/>
 
   <!-- Profile info -->
   <text class="display-name" x="160" y="65">${displayName}</text>

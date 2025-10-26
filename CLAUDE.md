@@ -34,8 +34,8 @@ Deploys the service to Cloudflare Workers (configured in wrangler.jsonc).
 - Elysia application configured with CloudflareAdapter
 - Two routes:
   - `GET /`: Returns API info
-  - `GET /:npub`: Generates and returns SVG profile card for a Nostr npub
-- Validates npub format (must start with 'npub1')
+  - `GET /:npub`: Generates and returns SVG profile card for a Nostr npub or nprofile
+- Validates npub/nprofile format (must start with 'npub1' or 'nprofile1')
 - Fetches profile and badges in parallel for performance
 - Returns SVG with appropriate Content-Type and caching headers (1 hour)
 
@@ -44,13 +44,16 @@ Deploys the service to Cloudflare Workers (configured in wrangler.jsonc).
   - wss://yabu.me
   - wss://relay.damus.io
   - wss://relay.nostr.band
-- `getProfileByNpub()`: Fetches kind 0 (profile metadata) events with 10s timeout
+- `getUser()`: Decodes both npub and nprofile formats. For nprofile, extracts relay hints and uses them preferentially
+- `getProfileByNpub()`: Fetches kind 0 (profile metadata) events with 2.5s timeout. Verifies event signatures before returning
 - `getBadgesByNpub()`: Fetches kind 30008 (profile badges) and resolves kind 30009 (badge definitions), limited to 5 badges
 - All relay operations use timeouts to prevent hanging requests
+- Event signature verification using verifyEvent() ensures data integrity
 
 #### SVG Generation (src/svg.ts)
 - `generateProfileSvg()`: Creates a 650x200px SVG profile card
 - Displays: avatar (circular, 120x120), display name, username, bio (truncated to 150 chars), and badges (48x48 thumbnails)
+- `fetchImageAsDataUri()`: Converts external images to data URIs to avoid CSP issues and ensure SVG is self-contained
 - XML escaping for all user-generated content to prevent XSS
 - Defensive defaults for missing profile data
 
@@ -74,9 +77,11 @@ Deploys the service to Cloudflare Workers (configured in wrangler.jsonc).
 3. **Resource Cleanup**: SimplePool.close() is always called to prevent resource leaks
 4. **Error Handling**: Comprehensive try-catch blocks with appropriate HTTP status codes
 5. **Caching**: SVG responses include Cache-Control headers (1 hour public cache)
+6. **Data URI Embedding**: All images are converted to data URIs for self-contained SVGs
 
 ### Notes
 
 - No test suite currently configured (package.json has placeholder test command)
 - The service is stateless and relies entirely on Nostr relays for data
 - Badge fetching parses 'a' tags (NIP-33 addressable events) to resolve badge definitions
+- Supports both npub (public key only) and nprofile (public key + relay hints) formats
