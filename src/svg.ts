@@ -126,7 +126,7 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
 
   <!-- Profile info -->
   <text class="display-name" x="160" y="65">${displayName}</text>
-  ${name ? `<text class="username" x="160" y="95">${name}</text>` : ''}
+  ${name ? `<text class="username" x="160" y="95">@${name}</text>` : ''}
 
   ${about ? `
   <!-- Bio -->
