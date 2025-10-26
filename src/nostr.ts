@@ -66,7 +66,7 @@ export async function getProfileByNpub(userData: User): Promise<NostrProfile | n
     ]);
 
     // プールを閉じる
-    pool.close(RELAYS);
+    pool.close(userData.relays || RELAYS);
 
     if (!event) {
       return null;
@@ -91,31 +91,37 @@ export async function getBadgesByNpub(userData: User): Promise<Badge[]> {
   try {
     const pool = new SimplePool();
 
-    // kind 30008 (プロフィールバッジ) を取得
-    const profileBadgesEvent = await Promise.race([
-      pool.get(userData.relays || RELAYS, {
-        kinds: [30008],
-        authors: [userData.pubkey],
-        '#d': ['profile_badges']
+    // kind 8 (バッジ授与イベント) を取得
+    const badgeAwardEvents = await Promise.race([
+      pool.querySync(userData.relays || RELAYS, {
+        kinds: [8],
+        '#p': [userData.pubkey]
       }),
-      new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 10000)
+      new Promise<Event[]>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000)
       )
     ]);
 
-    if (!profileBadgesEvent || !verifyEvent(profileBadgesEvent)) {
-      pool.close(RELAYS);
+    if (!badgeAwardEvents || badgeAwardEvents.length === 0) {
+      pool.close(userData.relays || RELAYS);
       return [];
     }
 
-    // aタグを解析してバッジ定義の参照を取得
-    const aTags = profileBadgesEvent.tags.filter(tag => tag[0] === 'a');
+    // 受取日（created_at）で降順ソート
+    const sortedEvents = badgeAwardEvents
+      .filter(event => verifyEvent(event))
+      .sort((a, b) => b.created_at - a.created_at);
 
     // 最大5つまで取得
-    const badgeReferences = aTags.slice(0, 5);
+    const topEvents = sortedEvents.slice(0, 5);
+
+    // 各イベントからaタグ（バッジ定義への参照）を抽出
+    const badgeReferences = topEvents
+      .map(event => event.tags.find(tag => tag[0] === 'a'))
+      .filter((tag): tag is string[] => tag !== undefined);
 
     if (badgeReferences.length === 0) {
-      pool.close(RELAYS);
+      pool.close(userData.relays || RELAYS);
       return [];
     }
 
@@ -164,7 +170,7 @@ export async function getBadgesByNpub(userData: User): Promise<Badge[]> {
       }
     }
 
-    pool.close(RELAYS);
+    pool.close(userData.relays || RELAYS);
     return badges;
   } catch (error) {
     console.error('Error fetching badges:', error);
