@@ -24,23 +24,43 @@ export interface Badge {
   thumb?: string;
 }
 
+export type User = {
+  pubkey: string
+  relays: string[] | null
+}
+
+function getUser(userKey: string): User {
+  const decoded = nip19.decode(userKey);
+  if (decoded.type !== 'nprofile' && decoded.type !== 'npub') {
+    throw new Error('Invalid nprofile format');
+  }
+  switch (decoded.type) {
+    case 'nprofile':
+      return {
+        pubkey: decoded.data.pubkey,
+        relays: decoded.data.relays || null
+      }
+    case 'npub':
+      return {
+        pubkey: decoded.data,
+        relays: null
+      };
+  }
+}
+
 export async function getProfileByNpub(npub: string): Promise<NostrProfile | null> {
   try {
     // npubをhexに変換
-    const decoded = nip19.decode(npub);
-    if (decoded.type !== 'npub') {
-      throw new Error('Invalid npub format');
-    }
-    const pubkey = decoded.data;
+    const userData = getUser(npub);
 
     // SimplePoolを使ってリレーに接続
     const pool = new SimplePool();
 
     // kind0イベントを取得（10秒タイムアウト）
     const event = await Promise.race([
-      pool.get(RELAYS, {
+      pool.get(userData.relays || RELAYS, {
         kinds: [0],
-        authors: [pubkey],
+        authors: [userData.pubkey],
         limit: 1
       }),
       new Promise<null>((_, reject) =>
@@ -67,19 +87,15 @@ export async function getProfileByNpub(npub: string): Promise<NostrProfile | nul
 export async function getBadgesByNpub(npub: string): Promise<Badge[]> {
   try {
     // npubをhexに変換
-    const decoded = nip19.decode(npub);
-    if (decoded.type !== 'npub') {
-      throw new Error('Invalid npub format');
-    }
-    const pubkey = decoded.data;
+    const userData = getUser(npub);
 
     const pool = new SimplePool();
 
     // kind 30008 (プロフィールバッジ) を取得
     const profileBadgesEvent = await Promise.race([
-      pool.get(RELAYS, {
+      pool.get(userData.relays || RELAYS, {
         kinds: [30008],
-        authors: [pubkey],
+        authors: [userData.pubkey],
         '#d': ['profile_badges']
       }),
       new Promise<null>((_, reject) =>

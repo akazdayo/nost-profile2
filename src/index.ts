@@ -10,9 +10,9 @@ export default new Elysia({
   .get("/:npub", async ({ params: { npub }, set }) => {
     try {
       // npubの基本的なバリデーション
-      if (!npub.startsWith('npub1')) {
+      if (!npub.startsWith('npub1') && !npub.startsWith('nprofile1')) {
         set.status = 400;
-        return { error: 'Invalid npub format. Must start with npub1' };
+        return { error: 'Invalid npub format. Must start with npub1 or nprofile1' };
       }
 
       // Nostrプロフィールとバッジを並列で取得
