@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { getProfileByNpub, getBadgesByNpub } from "./nostr";
 import { generateProfileSvg } from "./svg";
-import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker';
+import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 
 export default new Elysia({
   adapter: CloudflareAdapter

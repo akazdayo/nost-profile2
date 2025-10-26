@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "bun-types": "latest",
+    "typescript": "^5.9.3",
     "wrangler": "^4.45.0"
   },
   "module": "src/index.js"
