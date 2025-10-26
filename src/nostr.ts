@@ -1,4 +1,4 @@
-import { nip19, SimplePool, type Event } from 'nostr-tools';
+import { nip19, SimplePool, verifyEvent, type Event } from 'nostr-tools';
 
 const RELAYS = [
   'wss://yabu.me',
@@ -75,6 +75,12 @@ export async function getProfileByNpub(npub: string): Promise<NostrProfile | nul
       return null;
     }
 
+    // イベントの署名を検証
+    if (!verifyEvent(event)) {
+      console.error('Invalid event signature');
+      return null;
+    }
+
     // content JSONをパース
     const profile: NostrProfile = JSON.parse(event.content);
     return profile;
@@ -103,7 +109,7 @@ export async function getBadgesByNpub(npub: string): Promise<Badge[]> {
       )
     ]);
 
-    if (!profileBadgesEvent) {
+    if (!profileBadgesEvent || !verifyEvent(profileBadgesEvent)) {
       pool.close(RELAYS);
       return [];
     }
