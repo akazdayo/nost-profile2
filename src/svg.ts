@@ -113,7 +113,7 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
       }
     </style>
     <clipPath id="avatar-clip">
-      <circle cx="80" cy="100" r="58"/>
+      <circle cx="80" cy="80" r="58"/>
     </clipPath>
   </defs>
 
@@ -121,16 +121,16 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
   <rect class="card" x="0" y="0" width="${width}" height="${height}" rx="10"/>
 
   <!-- Avatar with border -->
-  <circle class="avatar-border" cx="80" cy="100" r="60"/>
-  <image href="${picture}" x="20" y="40" width="120" height="120" clip-path="url(#avatar-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <circle class="avatar-border" cx="80" cy="80" r="60"/>
+  <image href="${picture}" x="20" y="20" width="120" height="120" clip-path="url(#avatar-clip)" preserveAspectRatio="xMidYMid slice"/>
 
   <!-- Profile info -->
-  <text class="display-name" x="160" y="65">${displayName}</text>
-  ${name ? `<text class="username" x="160" y="95">@${name}</text>` : ''}
+  <text class="display-name" x="160" y="45">${displayName}</text>
+  ${name ? `<text class="username" x="160" y="75">@${name}</text>` : ''}
 
   ${about ? `
   <!-- Bio -->
-  <text class="bio" x="160" y="${name ? '135' : '115'}">
+  <text class="bio" x="160" y="${name ? '115' : '95'}">
     ${about.split('\n').slice(0, 3).map((line, i) =>
     `<tspan x="160" dy="${i === 0 ? '0' : '20'}">${line}</tspan>`
   ).join('\n    ')}
@@ -142,7 +142,7 @@ export async function generateProfileSvg(profile: NostrProfile, npub: string, ba
   <g id="badges">
     ${badges.map((badge, index) => {
     const badgeX = 382 + (index * 50); // Right-aligned: 650 - 20 - (48*5 + 2*4) = 382
-    const badgeY = 40;
+    const badgeY = 20;
     const imageDataUri = badgeImages[index];
 
     return `
