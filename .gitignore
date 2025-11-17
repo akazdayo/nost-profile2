@@ -44,3 +44,6 @@ package-lock.json
 # cloudflare
 .wrangler/
 dist/
+
+.envrc
+.direnv/
